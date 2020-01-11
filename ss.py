@@ -412,7 +412,7 @@ async def group(ctx, groupurl, description='Fetches the information of a certain
 
 
 @bot.command()
-async def frspammer(ctx, description='Spams with typing event for every single friend in your list'):
+async def friendspammer(ctx, description='Spams with typing event for every single friend in your list'):
     friends = bot.user.friends
     stime = input("How many seconds/attemps? \n")
     for i in range(0, int(stime)):
@@ -425,7 +425,7 @@ async def frspammer(ctx, description='Spams with typing event for every single f
 
 
 @bot.command()
-async def spammer(ctx, typeofchannel, cid: int, description='Typing event spammer by cid. The typeofchannel should either be server or user'):
+async def evsp(ctx, typeofchannel, cid: int, description='Typing event spammer by cid. The typeofchannel should either be server or user'):
     stime = input("How many seconds?\n")
     if "server" in typeofchannel:
         cmd = await bot.fetch_channel(int(cid))
