@@ -12,4 +12,3 @@
 Укажите свой Discord токен в settings.yml
 
 Откройте ss.py
-
