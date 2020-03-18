@@ -103,23 +103,6 @@ async def on_typing(channel, user, when):
         print(f"{user} has started typing in {channel} at {when}")
 
 
-    
-
-
-@bot.command()
-async def sd2(ctx, cid: int, limit: int):
-    await ctx.message.delete()
-    channel = await bot.fetch_user(int(cid))
-    count = 0
-    print(channel)
-    async for msg in channel.history(limit=limit).filter(lambda m: m.author == bot.user).map(lambda m: m):
-        count+=1
-        try:
-            await msg.delete()
-        except Exception:
-            pass
-    print(count) 
-    
 @bot.command()
 async def exportall(ctx):
     await ctx.message.delete()
@@ -159,30 +142,24 @@ async def clearfriends(ctx):
 
 
 @bot.command()
-async def export(ctx, cid: int, typeofmsg):
-    if "server" in typeofmsg:
-        cmd = await bot.fetch_channel(int(cid))
-    else:
-        cmd = await bot.fetch_user(int(cid))
-    await ctx.message.delete()
-    channel = cmd
+async def export(ctx, username):
     count = 0
-    print(channel)
-    print(f"Exporting DMs with {channel}")
-    async for msg in channel.history(limit=None):
-        count+=1
-        try:
-            if type(msg.channel) == discord.DMChannel:
-                uwu = open(f"cmd export with {channel}.txt", "a+", encoding="utf-8")
-                timeofmsg = f"{msg.created_at.year}/{msg.created_at.month}/{msg.created_at.day} | {msg.created_at.hour}:{msg.created_at.minute}:{msg.created_at.second} |"
-                if len(msg.attachments) > 0:
-                    uwu.write(f"{timeofmsg} [DM with {msg.channel.recipient}] {msg.author.name}: {msg.content} {msg.attachments[0].url}")
-                    uwu.write("\n")                
-                else:
-                    uwu.write(f"{timeofmsg} [DM with {msg.channel.recipient}] {msg.author.name}: {msg.content}")
-                    uwu.write("\n")
-        except Exception:
-            pass
+    for channel in bot.private_channels:
+        if str(username) in str(channel):
+            async for msg in channel.history(limit=None):
+                try:
+                    count+=1    
+                    if type(msg.channel) == discord.DMChannel:
+                        uwu = open(f"cmd export with {channel}.txt", "a+", encoding="utf-8")
+                        timeofmsg = f"{msg.created_at.year}/{msg.created_at.month}/{msg.created_at.day} | {msg.created_at.hour}:{msg.created_at.minute}:{msg.created_at.second} |"
+                    if len(msg.attachments) > 0:
+                        uwu.write(f"{timeofmsg} [DM with {msg.channel.recipient}] {msg.author.name}: {msg.content} {msg.attachments[0].url}")
+                        uwu.write("\n")                
+                    else:
+                        uwu.write(f"{timeofmsg} [DM with {msg.channel.recipient}] {msg.author.name}: {msg.content}")
+                        uwu.write("\n")
+                except Exception:
+                    pass
     print(count)
 
 @bot.command()
@@ -202,6 +179,47 @@ async def edit(ctx, text):
 
 
 urls = ['youtu.be', 'youtube.com', 'imgur.com', 'tenor.com']
+
+@bot.command()
+async def check(ctx, id, description='Fetches the information of a certain Steam account. Note - ID parameter is only used for vanity URLs'):
+    try: 
+        steamprofile = requests.get(f'http://steamcommunity.com/id/{id}').text
+        steamprofileXML = requests.get(f"https://steamcommunity.com/id/{id}/?xml=1").text
+        soup = BeautifulSoup(steamprofile, "html.parser")
+        soupXML = BeautifulSoup(steamprofileXML, "html.parser")
+        privacycheck = soupXML.find("privacystate").text
+        username = soup.find("span", {"class": "actual_persona_name"}).text
+        avatarURL = soupXML.find("avatarfull").text
+        print(privacycheck)
+        if privacycheck == "public":
+            try:            
+                steamlevel = soup.find("span", {"class": "friendPlayerLevelNum"}).text
+                registrationdate = soupXML.find("membersince").text
+                state = soupXML.find("onlinestate").text
+                print(steamlevel, username, avatarURL, registrationdate, state)
+                embed = discord.Embed(title="Steam Profile Information", description=f"Information for /id/{id}", color=0xff1d9d)
+                embed.set_thumbnail(url=avatarURL)
+                embed.add_field(name="Username", value=username, inline=False)
+                embed.add_field(name="Level", value=steamlevel, inline=False)
+                embed.add_field(name="Steam Member Since", value=registrationdate, inline=False)
+                if "in-game" in steamprofileXML:
+                    currentgame = soupXML.find("gamename").text
+                    state = f"Playing {currentgame}"                
+                embed.add_field(name="Current state", value=state, inline=False)
+                await ctx.send(embed=embed)
+            except Exception:
+                embed = discord.Embed(title="Steam Profile Information", description=f"Information for /id/{id}", color=0xff1d9d)
+                embed.set_thumbnail(url=avatarURL)
+                embed.add_field(name="Username", value=username, inline=False)
+                embed.add_field(name="Current state", value="Community banned", inline=False)
+                await ctx.send(embed=embed)
+        if privacycheck == "private":
+            embed = discord.Embed(title="Steam Profile Information", description=f"Information for /id/{id}", color=0xff1d9d)
+            embed.set_thumbnail(url=avatarURL)
+            embed.add_field(name="This profile is private.", value=":(", inline=False)
+            await ctx.send(embed=embed)
+    except Exception:
+        await ctx.message.edit("-")
 
 # create a new session to avoid getting rate limited 
 ratelimit_session = cu(discord_api+discord_ratelimit_key)
