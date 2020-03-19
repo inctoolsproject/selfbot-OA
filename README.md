@@ -24,4 +24,4 @@ to be able to get userids, make sure to turn this setting on https://imgur.com/a
 
 after that you will be able to copy ids of your friends/users by right clicking on their profile
 
-dm me on discord if you have any questions
+dm me on discord auth#0666 if you have any questions
